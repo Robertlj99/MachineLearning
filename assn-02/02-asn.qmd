@@ -1,0 +1,149 @@
+---
+title: "CSCI/DASC 6020: Written Assignment 02"
+author: "Robert Johnson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+number-sections: true
+number-depth: 3
+format:
+  html:
+    toc: true
+    toc-location: right
+    number-sections: true
+    number-depth: 3
+    html-math-method: katex
+    embed-resources: true
+# bibliography: dasc-6000.bib 
+# csl: ieee-with-url.csl
+# linkcolor: red
+# urlcolor: blue
+# link-citations: yes
+# header-includes:
+#   - \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Assignment Goal {.unnumbered}
+
+The goal of this assignment is to demonstrate your understanding of fundamentals of machine learning -- trade-off between prediction accuracy and model interpretability, supervised versus unsupervised learning, regression versus classification problems, measuring the quality of fit, and the bias-variance trade-off. 
+
+# Question: Simple Regression Models
+
+Consider the following figure:
+
+![](models.png)
+
+
+Shown in the leftmost subfigure is the scatter plot of dataset. \emph{Age} is the predictor variable and \emph{Income} is the response/target variable. The next three subfigures are simple regression models which are referred to as $M_1$, $M_2$, and $M_3$. One of the models is an overfit, another is just right, and the remaining one is underfit. Which model is an overfit model? Underfit model? Just about right model? What is the basis for your answers?
+
+**Answer:** $M_1$ Is underfit, you can tell since its just a straight line through the model. $M_2$ is overfit, the model is doing too much to get the line to every point in the model. $M_3$ is the right fit for the model above.
+
+
+# Question: Consistent Prediction Models
+
+Consider the training data shown below, in which **ID**, **Occupation**, **Age**, and **Loan-Salary Ratio** are the predictor variables, and **Outcome** is the response/target variable.
+
+
+```{r}
+#| echo: false
+ID <- c(1,2,3,4,5,6,7,8,9,10)
+Occupation <- c("industrial", "professional", "professional", "professional", "industrial ", "industrial", "professional", "professional", "industrial", "industrial")
+Age <- c(34, 41, 36, 41, 48, 61, 37, 40, 33, 32)
+Loan_Salary_Ratio <- c(2.96, 4.64, 3.22, 3.11, 3.80, 2.52, 1.50, 1.93, 5.25, 4.15)
+Outcome <- c("repaid", "default", "default", "default", "default", "repaid", "repaid", "repaid", "default", "default")
+df <- data.frame(ID, Occupation, Age, Loan_Salary_Ratio, Outcome)
+# print(df)
+```
+
+<!--
+
+# replace _ in column names by a space
+knitr::kable(iris2, col.names = gsub("[_]", " ", names(iris)))
+
+knitr::kable(iris, col.names = c('We', 'Need', 'Five', 'Names', 'Here'))
+-->
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df, caption = 'A machine learning application dataset.', col.names = gsub("[_]", " ", names(df)), align = "rlccl")
+```
+
+
+Next consider the following prediction model (called $M_1$), which is developed using the data in the table above:
+
+```
+if Loan-Salary Ratio > 3 then
+    Outcome=’default’
+else
+    Outcome=’repay’
+end if
+```
+
+Why is this model a consistent prediction model? Explain. This model also uses two principles: feature design and feature selection. Explain these two principles.
+
+**Answer:** This is a consistent prediction model because it accurately and consistently predicts the target variable using input variables. Feature engineering (aka design and selection) is, simply put, the act of converting raw data/observation into useful features. For this example we can see that when Loan Salary Ratio is > 3 Outcome is default, otherwise Outcome is repaid. So we select Loan Salary Ratio and design our model to get the desired feature Outcome.
+
+
+# Question: Consistent Prediction Model
+
+Consider the training data shown in the following table. ID, Amount, Salary, Ratio, Age, Occupation, House, and Type are predictor variables, and Outcome is the response/target variable.
+
+
+```{r}
+#| echo: false
+# install readr, if not already installed
+# install.packages("readr")
+# load readr
+library(readr)
+df <- readr::read_tsv("./data.tsv")
+column_names <- c("ID", "Amount", "Salary", "Loan-Salary Ratio", "Age", "Occupation", "House", "Type", "Outcome")
+colnames(df) <- column_names
+# print(df)
+```
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df, caption = 'Another machine learning application dataset.', col.names = gsub("[_]", " ", names(df)), align = "lrrcrrrrr")
+```
+
+Next consider the following prediction model (called $M_2$) which is developed using the data in the table above:
+
+```
+if Loan-Salary Ratio < 1.5 then
+    Outcome=’repay’
+else if Loan-Salary Ratio > 4 then
+    Outcome=’default’
+else if Age < 40 and Occupation =’industrial’ then
+    Outcome=’default’
+else
+    Outcome=’repay’
+end if
+```
+
+Is this model a consistent prediction model? Explain. Which model is better? $M_1$ or $M_2$. Why?
+
+**Answer:** Yes this model is a consistent prediction model since it will accurately and consistently determine the output/target variable. This model is likely better than $M_1$ as it uses more variables and can be used on more cases.
+
+
+
+# Question: Classification or Regression?
+
+Explain whether each scenario is a classification or regression problem.
+
+## Scenario 1
+
+We collect a set of data on the top 500 firms in the US. For each firm we record profit, number of employees, industry and the CEO salary. We are interested in understanding which factors affect CEO salary.
+
+**Answer:** This is an example of regression. We are trying to evaluate the input variables (record profit, number of employees, industry) and attempting to draw a conclusion on a number value (CEO salary).
+
+## Scenario 2 
+
+We are considering launching a new product and wish to know whether it will be a success or a failure. We collect data on 20 similar products that were previously launched. For each product we have recorded whether it was a success or failure, price charged for the product, marketing budget, competition price, and ten other variables.
+
+**Answer:** This is an example of classification. We are examining the input variables from the previous products and making a prediction on the output value (success or failure) of our own product. So, each previous product is classified already and we want to examine which input variables affect that classification and determine if our input variables will classify us as a success or failure. 
+

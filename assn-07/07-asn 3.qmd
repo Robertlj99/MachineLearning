@@ -1,0 +1,318 @@
+---
+title: "Written Assignment 07"
+author: "Robert Johnson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+number-sections: true
+number-depth: 3
+fig-cap-location: margin
+format:
+  html:
+    toc: true
+    toc-location: right
+    number-sections: true
+    number-depth: 3
+    html-math-method: katex
+    embed-resources: true
+    self-contained: true
+    code-fold: true
+# bibliography: dasc-6000.bib 
+# csl: ieee-with-url.csl
+# linkcolor: red
+# urlcolor: blue
+# link-citations: yes
+# header-includes:
+#   - \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Assignment Goal {.unnumbered}
+
+The overarching goal for this assignment is to assess your understanding of the error-based machine learning algorithms. 
+
+# Instructions {.unnumbered}
+
+Please show all your work. Simply providing the final answer is treated as no response. If you do not use R or Python notebooks, it is fine. However, the document structure should be preserved if you choose to use Microsoft Word or something else.
+
+Please submit your response either as a self-contained HTML or PDF document.
+
+# Multivariate Linear Regression Model
+
+A multivariate linear regression model has been built to predict the heating load in a residential building based on a set of descriptive features describing the characteristics of the building. Heating load is the amount of heat energy required to keep a building at a specified temperature, usually 65 degrees Fahrenheit, during the winter regardless of outside temperature. The descriptive features used are the overall surface area of the building, the height of the building, the area of the building’s roof, and the percentage of wall area in the building that is glazed. This kind of model would be useful to architects or engineers when designing a new building. The trained model is:
+
+$$
+\begin{split}
+\text{Heating Load} &= \text{-26.030 + 0.0497} \cdot \text{Surface Area}  \\
+& + \text{4.942} \times \text{Height - 0.090} \times \text{Roof Area} + \text{20.523} \times \text{Glazing Area}
+\end{split}
+$$
+
+Use this model to make predictions for each of the query instances shown in the table below.
+
+```{r}
+#| echo: false
+library(readr)
+df1 <- readr::read_csv("./heating-load.csv", col_names = TRUE)
+```
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df1, caption = 'Data for a predicting heating load in residential buildings.', align = "lrrrr")
+```
+
+
+$$
+\text{ID 1:}  -26.030 + 0.0497 * 784.0 + 4.942 * 3.5 - 0.090 * 220.5 + 20.523 * 0.25
+= 15.5 \\
+$$
+$$
+\text{ID 2:} -26.030 + 0.0497 * 710.5 + 4.942 * 3.0 - 0.090 * 210.5 + 20.523 * 0.10
+= 7.2
+$$
+$$
+\text{ID 3:} -26.030 + 0.0497 * 563.5 + 4.942 * 7.0 - 0.090 * 122.5 + 20.523 * 0.40
+= 33.8
+$$
+$$
+\text{ID 4:} -26.030 + 0.0497 * 637.0 + 4.942 * 6.0 - 0.090 * 147.0 + 20.523 * 0.60
+= 34.4
+$$
+
+# Another Multivariate Linear Regression Model
+
+You are asked to build a model that predicts the amount of oxygen that an astronaut consumes when performing five minutes of intense physical work. The descriptive features for the model will be the age of the astronaut and their average heart rate throughout the work. The regression model is:
+
+$$
+\begin{align*}
+\text{Oxycon} &= \text{w[0] + w[1]} \cdot \text{Age + w[2]} \cdot \text{Heart Rate} \\ 
+\end{align*}
+$$
+
+The table below shows a historical dataset that has been collected for this task.
+
+
+```{r}
+#| echo: false
+library(readr)
+df2 <- readr::read_csv("./oxygen-consumption.csv", col_names = TRUE)
+```
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df2, caption = 'Dataset for a predicting the amount of oxygen that an astronaut consumes when performing five minutes of intense physical work.', align = "lrrrr")
+```
+
+(a) Assuming that the current weights in a multivariate linear regression model are w[0]= -59.50, w[1] = -0.15, and w[2] = 0.60, make a prediction for each training instance using this model.
+
+```{r}
+id <- c(1,2,3,4,5,6,7,8,9,10,11,12)
+prediction <- c(17.15, 26.00, 25.55, 13.40, 8.90, 20.90, 28.85, 19.40, 17.75, 29.60, 19.85, 16.85)
+df <- data.frame(id, prediction)
+df
+```
+(b) Calculate the sum of squared errors for the set of predictions generated in part (a).
+
+```{r}
+squared_error <- c(434.41, 455.41, 354.60, 218.27, 330.09, 287.35, 251.91, 289.72, 181.26, 637.57, 399.47, 195.52)
+w0_error_delta <- c(20.84, 21.34, 18.83, 14.77, 18.17, 16.95, 15.87, 17.02, 13.46, 25.25, 19.99, 13.98)
+w1_error_delta <- c(854.54, 896.29, 696.74, 679.60, 872.08, 745.86, 682.48, 782.98, 498.14, 959.50, 859.44, 601.25)
+w2_error_delta <- c(2876.26, 3265.05, 2843.45, 1964.93, 2289.20, 2457.94, 2507.71, 2434.04, 1857.92, 3989.52, 2858.12, 1929.61)
+df <- data.frame(id, prediction, squared_error, w0_error_delta, w1_error_delta, w2_error_delta)
+df
+```
+    
+    Sum: squarred error = 4035.56, w0 error delta = 216.48 w1 error delta = 9128.90 w2 error delta = 31273.77
+    
+    Sum of squarred errors = 2017.78
+
+(c) Assuming a learning rate of 0.000002, calculate the weights at the next iteration of the gradient descent algorithm.
+
+    w[0]: -59.50 + (0.000002 * 216.48) = -59.4996
+
+    w[1]: -0.15 + (0.000002 * 9128.90) = 0.1317
+    
+    w[2]: 0.60 + (0.000002 * 31273.77) = 0.6625
+
+
+(d) Calculate the sum of squared errors for a set of predictions generated using the new set of weights calculated in part (c).
+
+    I did this exactly like the first calculation so I will skip typing it all out
+    
+    Sum of squared errors = 468.29
+
+
+# Logistic Regression Model
+
+The effects that can occur when different drugs are taken together can be difficult for doctors to predict. Machine learning models can be built to help predict optimal dosages of drugs so as to achieve a medical practitioner’s goals.26 In the following figure, the image on the left shows a scatter plot of a dataset used to train a model to distinguish between dosages of two drugs that cause a dangerous interaction and those that cause a safe interaction. There are just two continuous features in this dataset, DOSE1 and DOSE2 (both normalized to the range $(-1,1)$ using range normalization), and two target levels, *dangerous* and *safe*. In the scatter plot, DOSE1 is shown on the horizontal axis, DOSE2 is shown on the vertical axis, and the shapes of the points represent the target level—crosses represent *dangerous* interactions and triangles represent *safe* interactions.
+
+![A scatter plot of drug interactions.](./drug-interactions.png)
+
+In the preceding figure, the image on the right shows a simple linear logistic regression model trained to perform this task. This model is:
+
+P(TYPE = dangerous) =  *Logistic*(0.6168 + 2.7320 $\times$ DOSE1 + 2.4809 $\times$ DOSE2)
+
+
+Plainly, this model is not performing well.
+
+
+(a) Would the similarity-based, information-based, or probability-based predictive modeling approaches already covered in this book be likely to do a better job of learning this model than the simple linear regression model?
+
+    Similarity or information-based modelling strategies would likely perform better than a linear regression model since they are better able to capture non-linear correlations and interactions between features.
+    
+    
+(b) A simple approach to adapting a logistic regression model to learn this type of decision boundary is to introduce a set of basis functions that will allow a non-linear decision boundary to be learned. In this case, a set of basis functions that generate a cubic decision boundary will work well. An appropriate set of basis functions is as follows:
+
+$$
+\begin{aligned}
+& \phi_0(\langle\text { DOSE1 }, \text { DOSE2 } \rangle)=1 \quad \phi_1(\langle\text { DOSE1 }, \text {DOSE2 } \rangle)=\text { DOSE1 }  \\
+& \phi_2(\langle\text { DOSE1 }, \text { DOSE2 } \rangle)=\text { DOSE2 } \quad \phi_3(\langle\text { DOSE1 }, \text { DOSE2 } \rangle) = \text { DOSE1}^2 \\
+& \phi_4(\langle\text { DOSE1 }, \text { DOSE2 } \rangle)=\operatorname{DOSE2}^2 \quad \phi_5(\langle\text { DOSE1 }, \text { DOSE2 } \rangle)=\operatorname{DOSE1}^3 \\
+& \phi_6(\langle\text { DOSE1 }, \text { DOSE2 } \rangle)=\operatorname{DOSE2}^3 \quad \phi_7(\langle\text { DOSE1 }, \text { DOSE2 } \rangle)=\text { DOSE1 } \times \text { DOSE2 } \\
+&
+\end{aligned}
+$$
+
+
+Training a logistic regression model using this set of basis functions leads to the following model:
+
+$$
+\begin{aligned}
+& P(\text { TYPE }=\text { dangerous })= \\
+& \operatorname{Logistic}\left(-0.848 \times \phi_0(\langle\text { DOSE1, DOSE2} \rangle)+1.545 \times \phi_1(\langle\text { DOSE1, DOSE2} \rangle)\right. \\
+& -1.942 \times \phi_2(\langle\text { DOSE1, DOSE2} \rangle)+1.973 \times \phi_3(\langle\text { DOSE1}, \text { DOSE2 }\rangle) \\
+& +2.495 \times \phi_4(\langle\text { DOSE1}, \text { DOSE2} \rangle)+0.104 \times \phi_5(\langle\text { DOSE1, DOSE2} \rangle) \\
+& \left.+0.095 \times \phi_6(\langle\text { DOSE1}, \text { DOSE2} \rangle)+3.009 \times \phi_7(\langle\text { DOSE1, DOSE} 2\rangle)\right) \\
+&
+\end{aligned}
+$$
+
+Use this model to make predictions for the following query instances:
+
+```{r}
+#| echo: false
+library(readr)
+df3 <- readr::read_csv("./dose.csv", col_names = TRUE)
+```
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df3, caption = 'Prediction queries.', align = "lrrrr")
+```
+
+To compute this we simply enter the doses into the equation as prescribed and compute
+
+Answers return as follows:
+Query 1: 0.229
+Query 2: 0.020
+Query 3: 0.057
+Query 4: 0.155
+
+# Support Vector Machines
+
+A support vector machine has been built to predict whether a patient is at risk of cardiovascular disease. In the dataset used to train the model, there are two target levels —- *high risk* (the positive level, +1) or *low risk* (the negative level, -1) —- and three descriptive features —- AGE, BMI, and BLOOD PRESSURE. The support vectors in the trained model are shown in the table below (all descriptive feature values have been standardized).
+
+```{r}
+#| echo: false
+library(readr)
+df4 <- readr::read_csv("./svm-1.csv", col_names = TRUE)
+```
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df4, caption = 'Support vectors in the trained model.', align = "lrrr")
+```
+
+```{r}
+#| echo: false
+library(readr)
+df5 <- readr::read_csv("./svm-2.csv", col_names = TRUE)
+```
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df5, caption = 'Query instances for the SVM model.', align = "lrrr")
+```
+
+In the model the value of $w_0$ is -0.0216, and the values of the $\boldsymbol{\alpha}$ parameters are $\langle 1.6811,0.2384,0.2055,1.7139\rangle$. What predictions would this model make for the following query instances?
+
+1: low risk
+2: high risk
+3: low risk
+4: high risk
+
+
+# Efficient Implementation of the SVM Approach
+
+The use of the *kernel trick* is key in writing efficient implementations of the support vector machine approach to predictive modelling. The kernel trick is based on the fact that the result of a kernel function applied to a support vector and a query instance is equivalent to the result of calculating the dot product between the support vector and the query instance after a specific set of basis functions have been applied to both —- in other words, kernel $(\mathbf{d}, \mathbf{q})=\boldsymbol{\phi}(\mathbf{d}) \cdot \boldsymbol{\phi}(\mathbf{q})$.
+
+
+(a) Using the support vector $\langle\mathbf{d}[1], \mathbf{d}[2]\rangle$ and the query instance $\langle\mathbf{q}[1], \mathbf{q}[2]\rangle$ as examples, show that applying a polynomial kernel with $p=2, \operatorname{kernel}(\mathbf{d}, \mathbf{q})=$ $(\mathbf{d} \cdot \mathbf{q}+1)^2$, is equivalent to calculating the dot product of the support vector and query instance after applying the following set of basis functions:
+
+    $$
+    \begin{array}{ll}
+    \phi_0(\langle\mathbf{d}[1], \mathbf{d}[2]\rangle)=\mathbf{d}[1]^2 & \phi_1(\langle\mathbf{d}[1], \mathbf{d}[2]\rangle)=\mathbf{d}[2]^2 \\
+    \phi_2(\langle\mathbf{d}[1], \mathbf{d}[2]\rangle)=\sqrt{2} \times \mathbf{d}[1] \times \mathbf{d}[2] & \phi_3(\langle\mathbf{d}[1], \mathbf{d}[2]\rangle)=\sqrt{2} \times \mathbf{d}[1] \\
+    \phi_4(\langle\mathbf{d}[1], \mathbf{d}[2]\rangle)=\sqrt{2} \times \mathbf{d}[2] & \phi_5(\langle\mathbf{d}[1], \mathbf{d}[2]\rangle)=1
+    \end{array}
+    $$
+
+
+    I dont understand what the question here is
+    
+    
+    
+(b) A support vector machine model has been trained to distinguish between dosages of two drugs that cause a dangerous interaction and those that interact safely. This model uses just two continuous features, DOSE1 and DOSE2, and two target levels, dangerous (the positive level, +1 ) and safe (the negative level, -1). The support vectors in the trained model are shown in the following table.
+
+
+    ```{r}
+    #| echo: false
+    library(readr)
+    df6 <- readr::read_csv("./kernel-trick.csv", col_names = TRUE)
+    ```
+
+    ```{r}
+    #| echo: false
+    #| tbl-cap-location: margin
+    knitr::kable(df6, caption = 'Support vectors.', align = "lrr")
+    ```
+
+
+    In the trained model the value of $w_0$ is 0.3074 , and the values of the $\boldsymbol{\alpha}$ parameters are $\langle 7.1655,6.9060,2.0033,6.1144,5.9538\rangle$.
+
+    Using the version of the support vector machine prediction model that uses basis functions (see the Equation below) with the basis functions given in Part (a), calculate the output of the model for a query instance with DOSE $1=0.90$ and DOSE2 $=-0.90$.
+    
+    $$
+    \mathbb{M}_{\boldsymbol{\alpha}, \boldsymbol{\phi}, w_0}(\mathbf{q})=\sum_{i=1}^s\left(t_i \times \boldsymbol{\alpha}[i] \times\left(\boldsymbol{\phi}\left(\mathbf{d}_i\right) \cdot \boldsymbol{\phi}(\mathbf{q})\right)+w_0\right)
+    $$
+    
+    This is an incredible amount of math to type so I will walk through the steps taken in my handwritten solution then present the answers
+    
+    The first step to solving this is transforming the support vectors using the set of basis functions
+    
+    Secondly the query instance must also be transformed
+    
+    Lastly calculate the output of the support vector machine which I calculted as -2.23
+    
+    Since this output is negative the model will make a prediction of SAFE
+    
+(c) Using the version of the support vector machine prediction model that uses a kernel function (see the Equation below) with the polynomial kernel function, calculate the output of the model for a query instance with DOSE1 $=0.22$ and DOSE2 $=0.16$.
+
+    $$
+    \mathbb{M}_{\boldsymbol{\alpha}, k e r n e l, w_0}(\mathbf{q})=\sum_{i=1}^s\left(t_i \times \boldsymbol{\alpha}[i] \times \operatorname{kernel}\left(\mathbf{d}_i, \mathbf{q}\right)+w_0\right)
+    $$
+
+    This time the model outputs 1.4257, since this is positive the prediction is DANGEROUS
+
+(d) Verify that the answers calculated in Parts (b) and (c) of this question would have been the same if the alternative approach (basis functions or the polynomial kernel function) had been used in each case.
+
+    The alternative approach outputs the same values for each query and consequently the same predictions

@@ -1,0 +1,435 @@
+---
+title: "CSCI/DASC 6020: Written Assignment 03"
+author: "Your Name"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+number-sections: true
+number-depth: 3
+format:
+  html:
+    toc: true
+    toc-location: right
+    number-sections: true
+    number-depth: 3
+    html-math-method: katex
+    embed-resources: true
+# bibliography: dasc-6000.bib 
+# csl: ieee-with-url.csl
+# linkcolor: red
+# urlcolor: blue
+# link-citations: yes
+# header-includes:
+#   - \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Assignment Goal {.unnumbered}
+
+The goal of this assignment is to demonstrate your understanding of exploratory data analysis. 
+
+# Assignment Specification {.unnumbered}
+
+The first step is to identify a **relevant** open-source dataset. The dataset should have at least 500 instances and contain a mix of at least ten **continuous** and **categorical** variables. The next step is to perform various exploratory data analysis tasks discussed in the class. The final step is to summarize your findings. You may use Quarto/RMarkdown or Jupyter/Python to respond to this assignment. Use this document as a template to prepare your response.
+
+Some open-source data sources for this assignment are the following. This list is not exhaustive and you are not required to select a datset from this list.
+
+1. Integrated Postsecondary Education Data System (IPEDS) is a system of 12 interrelated survey components conducted annually that gathers data from every college, university, and technical and vocational institution that participates in the federal student financial aid programs. [IPEDS Website](https://nces.ed.gov/ipeds/)
+
+
+1. U.S. Securities and Exchange Commission (SEC) [Financial Statement Data Sets](https://www.sec.gov/dera/data/financial-statement-data-sets)
+
+
+1. [United Nations (UN) Datasets](https://data.un.org/)
+
+
+1. [World Bank Open Data](https://data.worldbank.org/)
+
+
+1. [The Library of Congress Datasets](https://guides.loc.gov/datasets/repositories)
+
+
+1. [NASDAQ Historical Datasets](https://www.nasdaq.com/market-activity/quotes/historical)
+
+
+1. [The World Factbook](https://www.cia.gov/the-world-factbook/) and [Guide to Country Comparisons](https://www.cia.gov/the-world-factbook/references/guide-to-country-comparisons/)
+
+
+# The Data Quality Report
+
+Document the data quality report in two separate tables, one for the continuous features and another for the categorical features. Use the table format discussed in the class.
+
+Ensure you run the following two chunks before any calculations
+
+```{r}
+#|label: load-functions&packages
+#|message: false
+
+library(tidyverse)
+
+#Finds the mode of a column and its respective frequency 
+#Input: A vector object, the column you wish to find the mode of
+#Output: Data-frame with two vectors:
+# x; one or more mode elements (will only return multiple if their is a tie)
+# Freq; the frequency count for each element in x in the passed vector
+find_mode <- function(x) {
+  tab <- table(x)
+  sorted_t <- tab %>%
+      as.data.frame(stringsAsFactors=FALSE) %>%
+      arrange(desc(Freq))
+  tab1 <- sorted_t %>% slice_max(Freq)
+}
+
+#Builds a Data Quality Report (DQR) for the categorical variables of your data-set
+#Input is a data frame containing the columns of your categorical data
+#Output is a printed DQR
+categorical.dqr <- function(a) {
+  
+  #create vectors for each column of DQR
+  feature <- colnames(a)
+  count <- nrow(a)
+  missing <- c()
+  card <- c()
+  min <- c()
+  mode1 <- c()
+  mode2 <- c()
+  mode1_freq <- c()
+  mode2_freq <- c()
+  
+  #loop through each column in the data-frame and extract desired values
+  for (i in feature) {
+    ca <- length(unique(a[[i]]))
+    mi <- sum(is.na(a[[i]]))
+    mo <- find_mode(a[[i]])
+    missing <- append(missing, c(mi))
+    card <- append(card, c(ca))
+    mode1 <- append(mode1, c(mo[1,1]))
+    mode2 <- append(mode2, c(mo[2,1]))
+    mode1_freq <- append(mode1_freq, c(mo[1,2]))
+    mode2_freq <- append(mode2_freq, c(mo[2,2]))
+  }
+  
+  #Convert percentage columns
+  mode1_per <- (mode1_freq / count) * 100
+  mode2_per <- (mode2_freq / count) * 100
+  missing <- (missing / count) * 100
+  
+  #build and print the DQR
+  df <- data.frame(feature, count, missing, card, mode1, mode1_freq, mode1_per, mode2, mode2_freq, mode2_per)
+  
+  print(df)
+}
+
+#Builds a Data Quality Report (DQR) for the continuous variables of your data-set
+#Input is a data frame containing the columns of your continuous data
+#Output is a printed DQR
+continuous.dqr <- function(a) {
+  
+  #create vectors for each column of DQR
+  feature <- colnames(a)
+  count <- nrow(a)
+  missing <- c()
+  card <- c()
+  Min <- c()
+  Max <- c()
+  Mean <- c()
+  q1 <- c()
+  Median <- c()
+  q3 <- c()
+  standard_dev <- c()
+  
+  #loop through each column in the data-frame and extract desired values
+  for (i in feature) {
+    ca <- length(unique(a[[i]]))
+    mis <- sum(is.na(a[[i]]))
+    mi <- min(a[[i]])
+    ma <- max(a[[i]])
+    me <- mean(a[[i]])
+    st <- sd(a[[i]])
+    st <- format(round(st, 1), nsmall = 1) #format these numbers to 1 decimal place
+    me <- format(round(me, 1), nsmall = 1) #format these numbers to 1 decimal place
+    card <- append(card, ca)
+    missing <- append(missing, c(mis))
+    Min <- append(Min, mi)
+    Max <- append(Max, ma)
+    Mean <- append(Mean, me)
+    standard_dev <- append(standard_dev, st)
+    
+    #quantile command is used to gather q1, median, and q3 data
+    q_all <- quantile(a[[i]], prob=c(.25,.5,.75), type=1)
+    q_all <- q_all %>% as.data.frame(stringsAsFactors=FALSE)
+    q1 <- append(q1, q_all[1,1])
+    Median <- append(Median, q_all[2,1])
+    q3 <- append(q3, q_all[3,1])
+  }
+  
+  #convert to percent
+  missing <- (missing / count) * 100
+  
+  #build and print DQR
+  df <- data.frame(feature, count, missing, card, Min, q1, Mean, Median, q3, Max, standard_dev)
+  print(df)
+}
+
+#Makes a histogram for each column in the data frame passed to it
+#Input: data-frame of continuous functions
+#Output: Histogram for each column in the data-frame
+make.hist <- function(a) {
+  feature <- colnames(a)
+  for (i in feature) {
+    hist(a[[i]], xlab = i, main = 'Frequency Distribution')
+  }
+}
+
+#Creates the data-frame to show issues, luckily for us we have none and all data looks how we should expect it to
+id.issues <- function(a) {
+  
+  features <- colnames(a)
+  
+  issue <- c()
+  handling <- c()
+  for (i in features) {
+    x = "n/a"
+    issue <- append(issue, c(x))
+    handling <- append(handling, c(x))
+  }
+  
+  df <- data.frame(features, issue, handling)
+  print(df)
+}
+
+```
+
+```{r}
+#|label: load-datasets
+x <- read.csv(file = 'game_stats_2018.csv')
+y <- read.csv(file = 'game_stats_2019.csv')
+gs_18 <- as.tibble(x)
+gs_19 <- as.tibble(y)
+(gs_18)
+head(gs_19)
+cat_18 <- select(gs_18, Week, HomeTeam, AwayTeam, Result)
+cat_19 <- select(gs_19, Week, HomeTeam, AwayTeam, Result)
+con_18 <- select(gs_18, Total, H.RushAtt, H.RushYards, H.PassYards, H.Turnover, H.Score, A.RushAtt, A.RushYards, A.PassYards, A.Turnover, A.Score)
+con_19 <- select(gs_19, Total, H.RushAtt, H.RushYards, H.PassYards, H.Turnover, H.Score, A.RushAtt, A.RushYards, A.PassYards, A.Turnover, A.Score)
+```
+
+Data Quality Report for categorical functions in game_stats_2018.csv
+
+```{r}
+#|label: categorical data quality report
+categorical.dqr(cat_18)
+```
+
+Data Quality Report for continuous functions in game_stats_2018.csv
+
+```{r}
+continuous.dqr(con_18)
+```
+
+Data Quality Report for categorical functions in game_stats_2019.csv
+
+```{r}
+categorical.dqr(cat_19)
+```
+
+Data Quality report for continuous functions in game_stats_2019.csv
+
+```{r}
+continuous.dqr(con_19)
+```
+
+# Histograms of Continuous Features
+
+Create a **histogram** for each continuous feature. What probability distributions the histograms reveal? For example, uniform, normal (unimodal), unimodal (skewed right), unimodal (skewed left), exponential, and multimodal.
+
+Histogram for continuous features in game_stats_2018.csv
+
+```{r}
+make.hist(con_18)
+```
+
+Features that exhibit a **normal** distribution: H.PassYards (there is a very very slight second peak that may cause this to be considered multimodal but I'm choosing to consider it normal for this assignment), and H.Score
+
+Features that exhibit a **skewed right** distribution: Total, H.RushYards, H.Turnover, A.RushAtt, A.RushYards, A.PassYards (this one was close to being normal), A.Turnover, A.Score
+
+These distributions seem, from a quick glance, consistent with what we would expect. Most team stats (aka home and away rush/pass yards and attempts, etc.) will be skewed right as higher scoring (and therefore higher valued and higher Total) games will be less common. Home score being normal is interesting, we'd expect it to be less skewed right than away score yet it being normal may be a trend in higher scoring home teams which we can potentially verify in game_stats_2019.csv. Home pass yards may be the most interesting distribution especially in correlation to home score. Like home score we'd expect it to be less skewed right than its away counterpart yet home rush yards is skewed right. These two things together may suggest a rise in passing and scoring in the NFL especially for home teams.
+
+
+Histogram for continuous features in game_stats_2019.csv
+
+```{r}
+make.hist(con_19)
+```
+Features that exhibit a **normal** distribution: Total & H.Score (once again both of these could be considered multi-modal but its very small), A.RushAtt
+
+Features that exhibit a **skewed right** distribution: H.RushAtt, H.RushYards, H.PassYards (very slightly skewed right), H.Turnover, A.RushAtt (again very slightly), A.RushYards, A.PassYards (again very slightly), A.Turnover
+
+Features that exhibit a **multi-modal** distribution: A.Score (could be considered skewed right for simplicity but there's enough peaks ill call this one multimodal)
+
+These once again seem consistent with expected results. Looking back at game_score_2018.csv we see Home Score remain normal yet H.PassYards is skewed right (albeit very slightly) casting some doubt on our earlier interpretation. Two more differences stand out: Total has a normal distrubtion this time (perhaps odds makers adjusted to the higher scoring saw last year), and A.Score is multimodal (still skewed right though) suggesting that the improving offenses from 2018 started preforming better on the road.
+
+# Identification of Data Quality Issues
+
+Consider the missing values, irregular cardinality problems, and outliers. Summarize the **data quality issues** using a three-column table. The first column is the feature name, the second column is the associated data quality issue, and the third column describes potential handling strategies.
+
+Luckily for us our data looks wonderful
+
+```{r}
+id.issues(gs_18)
+id.issues(gs_19)
+```
+
+# Scatterplot Matrix
+
+Construct the **scatterplot matrix** for the continuous features and comment on what you observed.
+
+Scatter plot matrix for game_scores_18.csv
+
+```{r}
+plot(con_18)
+```
+It is extremely hard to gather anything from this
+
+Scatter plot matrix for game_scores_2019.csv
+
+```{r}
+plot(con_19)
+```
+
+Same with this unfortunately
+
+# Visualizing Pairs of Categorical Features
+
+Use multiple **barplot visualizations**.
+
+Lets make a quick plot to view the Results from 2018 vs 2019, keep in mind that result can be three different values -1 if the final score was lower than the total (under), 0 if the final score was the same as the total (push), and 1 if the final score was higher than the total (over)
+
+```{r}
+tab <- table(cat_18$Result)
+tab2 <- table(cat_19$Result)
+x <- as.data.frame(tab)
+y <- as.data.frame(tab2)
+under <- c(x[1,2],y[1,2])
+push <- c(x[2,2], y[2,2])
+over <- c(x[3,2], y[3,2])
+df <- data.frame(under, push, over)
+print(df)
+barplot(height=as.matrix(df), beside=TRUE, main="Results from 2018 vs 2019", ylab="Frequency", col=rainbow(2))
+legend("center", c("2018", "2019"), cex=1.0, bty="n", fill=rainbow(2))
+```
+
+We can see here the under was more frequent in 2018 than 2019 and the inverse is true for the over
+
+None of my other categorical values lean themselves towards bar-plots as they really don't carry statistical meaning (each of the 32 teams appears 8 times in home team and 8 times in away team, each of the 17 weeks appears either 16 times or slightly less)
+
+# Visualizing Relationship Between a Catergorical and Continuous Feature
+
+For a subset of the categorical and continuous features, perform **stacked bar-plot visualizations**. Comment on what you observed.
+
+Lets analyze three teams home performances throughout the season, first we can compare their total home points scored and allowed week by week
+
+```{r}
+df <- gs_18[gs_18$HomeTeam %in% c('CAR','PHI','BAL'), ]
+df <- df %>% arrange(Week)
+ggplot(df, aes(fill=Week, y=H.Score, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Score',title='Total Points Scored as Home Team Week by Week')
+
+ggplot(df, aes(fill=Week, y=A.Score, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Score',title='Total Points Allowed as Home Team Week by Week')
+```
+
+Baltimore has the advantage both offensively and defensively, usually a team with a good running attack helps their defense, lets look into each teams offensive stats and see if this holds true. 
+
+```{r}
+ggplot(df, aes(fill=Week, y=H.RushYards, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Yards',title='Total Rush Yards Gained as Home Team Week by Week')
+
+ggplot(df, aes(fill=Week, y=H.PassYards, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Yards',title='Total Pass Yards Gained as Home Team Week by Week')
+
+ggplot(df, aes(fill=Week, y=H.Turnover, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Turnovers',title='Total Turnovers Lost as Home Team Week by Week')
+```
+
+Interestingly our hypothesis was somewhat true as Baltimore did have the best rush attack as we predicted yet Carolina, who had an awful defense, has a similarly good run attack. To best explain this difference we can simply look at the amount of turnovers each team lost and see that minimizing turnovers may have big impacs on defensive performance. Next lets look deeper at each teams defensive stats
+
+```{r}
+ggplot(df, aes(fill=Week, y=A.RushYards, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Yards',title='Total Rush Yards Allowed as Home Team Week by Week')
+
+ggplot(df, aes(fill=Week, y=A.PassYards, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Yards',title='Total Pass Yards Allowed as Home Team Week by Week')
+
+ggplot(df, aes(fill=Week, y=A.Turnover, x=HomeTeam)) + 
+  geom_bar(position='stack', stat='identity') +
+  labs(x='Team',y='Turnovers',title='Total Turnovers Forced as Home Team Week by Week')
+```
+
+These follow what would expect except for the Turnovers. Carolina seems to have had a major outlier year in terms of forcing turnovers, its odd, and a bit depressing if you're a Carolina fan, that these huge turnover numbers did not translate better in total defensive and offensive statistics
+
+# Boxplot Visualizations
+
+For a subset of the categorical and continuous features, perform **boxplot visualizations**. Comment on what you observed.
+
+```{r}
+boxplot(H.Score~HomeTeam, data=df)
+boxplot(A.Score~HomeTeam, data=df)
+```
+
+# Covariance Matrix
+
+For the continuous features, construct the **covariance matrix**. Comment on what you observed.
+
+```{r}
+cov(con_18)
+print('\n')
+cov(con_19)
+```
+
+# Correlation Matrix
+
+For the continuous features, construct the **correlation matrix**. Comment on what you observed.
+
+```{r}
+cor(con_18)
+print('/n')
+cor(con_19)
+```
+
+# Range Normalization
+
+List the continuous features that require **range normalization**. What is the rationale for your selection? Perform the range normalization and show the values before and after the normalization.
+
+
+# Binning
+
+Do you see the need for converting a subset of the continuous features into categorical features? Select two such continuous features and convert the first into a categorical feature using the **equal-width binning*** and the second using **equal-frequency binning**. Show the feature values after the equal-width and equal-frequency binning.
+
+
+# Undersampling
+
+Do you see a need for undersampling? **Undersampling** is used to reduce the instances from the majority class so that the final dataset is balanced. For example, a binary classification problem has a target/outcome variable that takes two values, say, *approved* and *denied*. In the dataset, if 70% of the instances have the *approved* value for the target variable, the dataset is *imbalanced*. Ideally, the dataset should have approximately equal number of instances for each the values the target variable takes. [This](https://predictivehacks.com/undersampling-by-groups-in-r/) article illustrates the undersampling.
+
+No
+
+# Oversampling
+
+**Oversampling** arises when we have too few instances from a class (called the minority class) relative to other classes. To boost the participation of the minority class in the (training) dataset, more observations from the minority class are generated usually by replicating the samples from the minority class.
+
+In your dataset, do you see the need for oversampling? If so, which features require oversampling?
+
+No
+
+# Summary
+
+Summarize the findings you have discovered through the exploratory data analysis. The summary should about a page and should serve as an executive report for non-technical people.
+

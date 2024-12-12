@@ -1,0 +1,125 @@
+---
+title: "Written Assignment 08"
+author: "Robert Johnson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+number-sections: true
+number-depth: 3
+fig-cap-location: margin
+format:
+  html:
+    toc: true
+    toc-location: right
+    number-sections: true
+    number-depth: 3
+    html-math-method: katex
+    embed-resources: true
+    self-contained: true
+# bibliography: dasc-6000.bib 
+# csl: ieee-with-url.csl
+# linkcolor: red
+# urlcolor: blue
+# link-citations: yes
+# header-includes:
+#   - \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Assignment Goal {.unnumbered}
+
+The overarching goal for this assignment is to assess your understanding of evaluating machine learning models. 
+
+# Instructions {.unnumbered}
+
+Please show all your work. Simply providing the final answer is treated as no response. If you do not use R or Python notebooks, it is fine. However, the document structure should be preserved if you choose to use Microsoft Word or something else.
+
+Please submit your response either as a self-contained HTML or PDF document.
+
+# Basic Evaluation Measures - Categorical Target
+
+The table below shows the predictions made for a **categorical target feature** by a model for a test dataset.
+
+```{r}
+#| echo: false
+library(readr)
+df1 <- readr::read_csv("./categorical-target.csv", col_names = TRUE)
+```
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df1, caption = 'Predictions made for a categorical target feature.', align = "lrr")
+```
+
+
+Based on this test set, calculate the following evaluation measures.
+
+(a) A confusion matrix and the misclassification rate
+
+|            | Prediction true| Prediction false|
+|------------|----------------|-----------------|
+|Target true | 8              | 1               |
+|Target false| 0              | 11              |
+
+$$
+\text{misclassification rate} = (0 + 1) / (8 + 11 + 0 + 1) = 0.05
+$$
+    
+(a) The average class accuracy (harmonic mean)
+
+$$
+\text{Harmonic mean} = 1 / 0.5((1/0.889) + (1/1)) = 0.941
+$$
+
+(a) The precision, recall, and $F_1$ measure
+
+$$
+\text{Precision} = 8 / 8 = 1
+$$
+$$
+\text{Recall} = 8 / (8+1) = 0.889
+$$
+$$
+\text{F1} = (1 * 0.889) / (1 + 0.889) = 0.941
+$$
+
+
+# Basic Evaluation Measures - Continuous Target
+
+The table below shows the predictions made for a **continuous target feature** by two different prediction models for a test dataset.
+
+```{r}
+#| echo: false
+library(readr)
+df2 <- readr::read_csv("./continuous-target 2.csv", col_names = TRUE)
+```
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df2, caption = 'Predictions made for a continuous target feature.', align = "lrrr")
+```
+
+(a) Based on these predictions, calculate the evaluation measures listed below for each
+model.
+
+    i. The sum of squared errors
+    
+    Model 1 = 16,876.6
+    
+    Model 2 = 47,186.3
+    
+    ii. The $R^2$ measure
+
+    Model 1 = 0.943
+    
+    Model 2 = 0.828
+
+(a) Based on the evaluation measures calculated, which model do you think is performing better for this dataset?
+
+
+Model 1 has a higher r squared score suggesting that it preforms better.

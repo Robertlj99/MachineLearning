@@ -1,0 +1,315 @@
+---
+title: "Written Assignment 05"
+author: "Robert Johnson"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+number-sections: true
+number-depth: 3
+format:
+  html:
+    toc: true
+    toc-location: right
+    number-sections: true
+    number-depth: 3
+    html-math-method: katex
+    embed-resources: true
+    self-contained: true
+# bibliography: dasc-6000.bib 
+# csl: ieee-with-url.csl
+# linkcolor: red
+# urlcolor: blue
+# link-citations: yes
+# header-includes:
+#   - \usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+# Assignment Goal {.unnumbered}
+
+The goal of this assignment is to develop $k$-nearest neighbor algorithms for machine learning applications. 
+
+
+    
+# A Nearest Neighbor Machine Learning Algorithm
+
+The table below lists a dataset that was used to create a nearest neighbor model that predicts whether it will be a good day to go surfing.
+
+```{r}
+#| echo: false
+ID <- c(1,2,3,4,5,6)
+wave_size <- c(6,1,7,7,2,10)
+wave_period <- c(15,6,10,12,2,2)
+wind_speed <- c(5,9,4,3,10,20)
+good_surf <- c("yes", "no", "yes", "yes", "no", "no")
+df1 <- data.frame(ID, wave_size, wave_period, wind_speed, good_surf)
+print(df1)
+```
+
+
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df1, caption = 'Data for a predicting a good day for surfing.', col.names = c('ID', 'Wave Size (ft)', 'Wave Period (secs)', 'Wind Speed (MPH/hr)', 'Good to Surf'), align = "lcccl")
+```
+
+Assuming that the model uses Euclidean distance to find the nearest neighbor, what prediction will the model return for each of the following query instances:
+
+```{r}
+#| echo: false
+ID <- c('q1', 'q2', 'q3')
+wave_size <- c(8,8,6)
+wave_period <- c(15,2,11)
+wind_speed <- c(2,18,4)
+good_surf <- c("?", "?", "?")
+df2 <- data.frame(ID, wave_size, wave_period, wind_speed, good_surf)
+# print(df2)
+```
+ 
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df2, caption = 'Query instances for testing the surf prediction algorithm.', col.names = c('ID', 'Wave Size (ft)', 'Wave Period (secs)', 'Wind Speed (MPH/hr)', 'Good to Surf'), align = "lrrrr")
+```
+
+
+Q1: The nearest neighbor will be 4 in the training data which has a target level of Good Surf = yes, therefore the model will predict Good Surf = yes
+
+Q2: The nearest neighbor will be 6 in the training data which has a target level of Good Surf = no, so it will predict that Good Surf = no
+
+Q3: The nearest neighbor will be 3 in the training data which has a target level of Good Surf = yes, so it will predict that Good Surf = yes
+
+
+
+# Eamil Spam Filtering
+ 
+Email spam filtering models often use a bag-of-words representation for emails. In a bag-of-words representation, the descriptive features that describe a document (in our case, an email) each represent how many times a particular word occurs in the document. One descriptive feature is included for each word in a predefined dictionary. The dictionary is typically defined as the complete set of words that occur in the training dataset.
+
+The table below lists the bag-of-words representation for the following five emails and a target feature, spam, whether they are spam emails or genuine emails:
+
+1. money, money, money
+1. free money of free gambling fun
+1. gambling of fun
+1. machine learning of fun, fun, fun
+1. free machine learning
+
+
+```{r}
+#| echo: false
+ID <- c(1,2,3,4,5)
+money <- c(3,1,0,0,0)
+free <- c(0,2,0,0,1)
+of <- c(0,1,1,1,0)
+gambling <- c(0,1,1,0,0)
+fun <- c(0,1,1,3,0)
+machine <- c(0,0,0,1,1)
+learning <- c(0,0,0,1,1)
+spam <- c("true", "true", "true", "false", "false")
+df3 <- data.frame(ID, money, free, of, gambling, fun, machine, learning, spam)
+print(df3)
+```
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df3, caption = 'Email spam filtering dataset.', col.names = c('ID', 'money', 'free', 'of', 'gambling', 'fun', 'machine', 'learning', 'spam'), align = "lcccccccr")
+```
+
+1. What target level would a nearest neighbor model using **Euclidean distance** return for the following email: machine learning of free?
+
+    Spam = False
+
+
+1. What target level would a $k\!-\!NN$ model with $k = 3$ and using the **Euclidean distance** return for the same query?
+
+    Spam = True
+
+1. What target level would a weighted $k\!-\!NN$ model with $k = 5$ and using a **weighting scheme** of the **reciprocal of the squared Euclidean distance** between the neighbor and the query, return for the query?
+
+    Spam = False
+
+1. What target level would a $k\!-\!NN$ model with $k = 3$ and using the **Manhattan distance** return for the same query?
+
+    Spam = False
+
+1. There are a lot of zero entries in the spam bag-of-words dataset. This is indicative of sparse data and is typical for text analytics. Cosine similarity is often a good choice when dealing with sparse non-binary data. What target level would a $3-NN$ model using the cosine similarity return for the query?
+
+    Spam = False
+    
+
+# Corruption Prediction
+
+The predictive task in this question is to predict the level of corruption in a country based on a range of macro-economic and social features. The following table lists some countries described by the following descriptive features:
+
+1. **Life Exp** -- the mean life expectancy at birth
+
+1. **Top-10 Income** -- the percentage of the annual income of the country that goes to the top 10\% of earners
+
+1. **Infant Mor** -- the number of infant deaths per 1,000 births
+
+1. **Mil Spend** -- the percentage of GDP spent on the military
+
+1. **School Years** -- the mean number years spent in school by adult females
+
+The target feature is the **Corruption Perception Index** (CPI). The **CPI** measures the perceived levels of corruption in the public sector of countries and ranges from 0 (highly corrupt) to 100 (very clean).
+
+
+```{r}
+#| echo: false
+library(readr)
+df4 <- readr::read_csv("./corruption-data.csv", col_names = TRUE)
+column_names <- c("Country ID", "Life Expectancy", "Top-10 Income", "Infant Mortality", "Military Spending", "School Years", "CPI")
+colnames(df4) <- column_names
+# summary(df4)
+# print(df4)
+```
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df4, caption = 'Corruption data of various countries.', align = "lrrrrrr")
+```
+
+
+We will use Russia as our query country for CPI prediction with the following values for the descriptive features:
+
+- Life Expectancy = 67.62
+- Top-10 Income = 31.68
+- Infant Mortality = 10.0
+- Military Spending = 3.87
+- School Years = 12.9
+
+a.  What value would a 3-nearest neighbor prediction model using Euclidean distance return for the CPI of Russia?
+
+    Three nearest neighbors are Argentina, China, and USA. Averaging these three gives 4.59
+
+a. What value would a weighted $k\!-\!NN$ prediction model return for the CPI of Russia? Use $k = 16$ (i.e., the full dataset) and a weighting scheme of the reciprocal of the squared Euclidean distance between the neighbor and the query.
+
+    The value returned is the sum of the instance weights times the instance target value all over the sum of its weights which yeilds 5.75
+
+
+a. The descriptive features in this dataset are of different types. For example, some are percentages, others are measured in years, and others are measured in counts per 1,000. We should always consider normalizing our data, but it is particularly important to do this when the descriptive features are measured in different units. What value would a 3-nearest neighbor prediction model using Euclidean distance return for the CPI of Russia when the descriptive features have been normalized using range normalization?
+
+    This method results in the 3 nearest neighbors being: Egypt, Brazil, and China. Averaging out to get 3.42
+
+a.  What value would a weighted $k\!-\!NN$ prediction model—with $k = 16$ (i.e., the full dataset) and using a weighting scheme of the reciprocal of the squared Euclidean distance between the neighbor and the query—return for the CPI of Russia when it is applied to the range-normalized data?
+
+    The value returned is the sum of the instance weights times the instance target value all over the sum of its weights which yeilds 2.87
+
+a.  The actual 2011 CPI for Russia was 2.4488. Which of the predictions made was the most accurate? Why do you think this was?
+
+
+    The final prediction was the most accurate emphasizing the importance of normalizing data
+
+# Recommender systems
+
+You have been given the job of building a recommender system for a large online shop that has a stock of over 100,000 items. In this domain the behavior of customers is captured in terms of what items they have bought or not bought. For example, the following table lists the behavior of two customers in this domain for a subset of the items that at least one of the customers has bought.
+
+```{r}
+#| echo: false
+c1 <- c(1, 2)
+c2 <- c("true", "true")
+c3 <- c("true", "false")
+c4 <- c("true", "false")
+c5 <- c("false", "true")
+c6 <- c("false", "true")
+df5 <- data.frame(c1, c2, c3, c4, c5, c6)
+column_names <- c("ID", "Item 107", "Item 498", "Item 7256", "Item 28063", "Item 75328")
+colnames(df5) <- column_names
+# print(df5)
+```
+
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df5, caption = 'Recommender system training dataset.', align = "lrrrrr")
+```
+
+
+```{r}
+#| echo: false
+c1 <- c("Query")
+c2 <- c("true")
+c3 <- c("false")
+c4 <- c("true")
+c5 <- c("false")
+c6 <- c("false")
+df6 <- data.frame(c1, c2, c3, c4, c5, c6)
+column_names <- c("ID", "Item 107", "Item 498", "Item 7256", "Item 28063", "Item 75328")
+colnames(df6) <- column_names
+# print(df6)
+```
+
+
+The company has decided to use a similarity-based model to implement the recommender system. 
+
+1. Which of the following three similarity indexes do you think the system should be based on?
+
+    $$
+    \begin{align*}
+    \text{Russell-Rao}(X,Y) &= \frac{CP(X,Y)}{P} \\ 
+    \text{Sokal-Michener}(X,Y) &= \frac{CP(X,Y)+CA(X,Y)}{P} \\ 
+    \text{Jaccard}(X,Y) &= \frac{CP(X,Y)}{CP(X,Y)+PA(X,Y)+AP(X,Y)}
+    \end{align*}
+    $$
+
+    Given that this is a sparse dataset we should select remembering that co-absences are not meaningful, furthermore since the features of this dataset are binary the Jaccard similarity index is the right choice.
+
+1. What items will the system recommend to the following customer? Assume that the recommender system uses the similarity index you chose in the first part of this question and is trained on the sample dataset listed above. Also assume that the system generates recommendations for query customers by finding the customer most similar to them in the dataset and then recommending the items that this similar customer has bought but that the query customer has not bought.
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df6, caption = 'Recommender system query instance.', align = "lrrrrr")
+```
+
+
+  Regardless of the choice for similarity metric the system will reccomend item 498
+
+
+# Rent Prediction
+
+You have been asked by a San Francisco property investment company to create a predictive model that will generate house price estimates for properties they are considering purchasing as rental properties. The table below lists a sample of properties that have recently been sold for rental in the city. The descriptive features in this dataset are **Size** (the property size in square feet) and **Rent** (the estimated monthly rental value of the property in dollars). The target feature, **Price**, lists the prices that these properties were sold for in dollars.
+
+```{r}
+#| echo: false
+c1 <- c(1, 2, 3, 4, 5, 6, 7)
+c2 <- c(2700, 1315, 1050, 2200, 1800, 1900, 960)
+c3 <- c(9235, 1800, 1250, 7000, 3800, 4000, 800)
+c4 <- c(2000000, 820000, 800000, 1750000, 1450000, 1500500, 720000)
+df7 <- data.frame(c1, c2, c3, c4)
+column_names <- c("ID", "Size", "Rent", "Price")
+colnames(df7) <- column_names
+# print(df7)
+```
+
+```{r}
+#| echo: false
+#| tbl-cap-location: margin
+knitr::kable(df7, caption = 'Rental property dataset.', align = "lrrr")
+```
+
+1. Create a $k-d$ tree for this dataset. Assume the following order over the features: Rent, then Size.
+
+```{mermaid}
+flowchart TD
+  ID=5_Rent=3800 -- Rent_under_3800 --- ID=3_Size=1050
+  ID=5_Rent=3800 -- Rent_over_3800 --- ID=4_Size=2,200
+  ID=3_Size=1050 -- Size_under_1050 --- ID=7
+  ID=3_Size=1050 -- Size_over_1050 --- ID=2
+  ID=4_Size=2,200 -- Size_under_2200 --- ID=6
+  ID=4_Size=2,200 -- Size_over_2200 --- ID=1
+```
+
+1. Using the $k\!-\!d$ tree that you created in the first part of this question, find the nearest neighbor to the following query: Size = 1,000, Rent = 2,200.
+
+d2 is returned indicating the property value is roughly $820k
+
+
+
+
+
